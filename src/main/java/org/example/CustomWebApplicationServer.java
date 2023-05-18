@@ -1,17 +1,18 @@
 package org.example;
 
-import org.example.calculator.domain.Calculator;
-import org.example.calculator.domain.PositiveNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class CustomWebApplicationServer {
     private final int port;
+
+    private ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     private static final Logger logger = LoggerFactory.getLogger(CustomWebApplicationServer.class);
 
@@ -36,8 +37,10 @@ public class CustomWebApplicationServer {
                  * Step2 - 사용자 요청이 들어올 때마다 Thread를 새로 생성해서 사용자 요청을 처리하도록 한다.
                  * 이슈 : Thread는 생성될 때 마다, 독립적인 스택 메모리를 할당받는데, 이는 매우 비싼 작업임.
                  *       성능이 매우 떨어짐. 요청이 많아지면 그만큼 Thread를 생성.
+                 *
+                 * Step3 - Thread Pool을 적용해 안정적인 서비스가 가능하도록 한다.
                  */
-                new Thread(new ClientRequestHandler(clientSocket)).start();
+                executorService.execute(new ClientRequestHandler(clientSocket));
             }
         }
     }
